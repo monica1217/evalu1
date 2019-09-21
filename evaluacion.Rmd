@@ -1,0 +1,65 @@
+---
+title: "Evaluacion 1 R"
+author: "Monica Albornoz Espinel"
+date: "19 de septiembre de 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+
+```{r}
+library(tidyverse)
+library(readr)
+library(dplyr)
+library(knitr)
+all.data1 <- read.csv ("tabla2.csv", sep=";", dec = ",", header=TRUE)
+
+data1<-all.data1
+data2 <- data1 %>% select(MSW05_Family, MSW05_Genus, MSW05_Species,X5.1_AdultBodyMass_g,X15.1_LitterSize, X9.1_GestationLen_d,X17.1_MaxLongevity_m,X16.1_LittersPerYear, X23.1_SexualMaturityAge_d, X13.1_AdultHeadBodyLen_mm)
+
+data3<-data2 %>% rename("Familia"=MSW05_Family, "Genero"=MSW05_Genus, "Especie"=MSW05_Species, "Peso"=X5.1_AdultBodyMass_g,"Crias"=X15.1_LitterSize, "Gestacion"=X9.1_GestationLen_d,"Longevidad"=X17.1_MaxLongevity_m, "CriasXano"= X16.1_LittersPerYear,"Madurez_sexual"=X23.1_SexualMaturityAge_d, "Tamano"=X13.1_AdultHeadBodyLen_mm) %>% filter(Tamano!=-999,Madurez_sexual!=-999, Peso!=-999,Longevidad!=-999,Gestacion!=-999, Crias!=-999) 
+
+```
+
+Se realizó la depuracion de la base de datos panTHERIA, la cual es una compilacion de informacion sobre difererntes variables de historia natural de distintos mamiferos a nivel mundial.
+
+Dentro de esta base de datos se encuentra la familia Sciridae perteneciente al orden Rodentia y conformada por ardillas arboreas, terrestres y voladoras. Ademas, de marmotas y perros de la pradera. Los miembros de esta familia varian en terminos de tamaño, peso, habitat entre otros.
+
+
+```{r}
+data4<-data3 %>% filter (Familia=="Sciuridae")
+data6<-filter(data3, Familia %in% c("Sciuridae", "Cricetidae","Gliridae"))
+```
+
+En la Figura 1 se puede observar como existe una relacion postiva entre el tamano y el peso.
+
+```{r, fig.cap = "Figura 1: Relacion del tamano con el peso de los diferentes generos de la Familia Sciuridae. Cada color representa un genero distinto"}
+ggplot(data4,aes(Tamano, Peso, colour=Genero)) + geom_point()+ theme(panel.background = element_rect(fill = "transparent"),axis.line = element_line(colour="black")) + ggtitle("Familia Sciuridae") + labs(x = "Tamaño (cm)", y= "Peso (g)") 
+```
+
+Los sistemas de apareamiento de los miembros de esta familia Sciridae consisten en que múltiples machos pueden aparearse con múltiples hembras en la temporada de reproducción, donde los periodos de gestación pueden variar entre especies; a lo cual muchas veces se le atribuyen a que esto depende del tamaño de la especie (Tabla 1).
+
+Sin embargo al hacer una exploracion con los datos se puedo encontrar que existe una relacion entre la gestacion y la longevidad (Figura 2), donde las especies especies las longevas suelen tener periodos de gestacion mas largos, con una logevidad promedio de `r mean (round(data4$Longevidad),2)` meses y `r mean (round(data4$Gestacion),2)`dias de gestacion.
+
+
+```{r, fig.cap = "Figura 2: Relacion entre la longevidad y la gestación en los diferentes generos de la Familia Sciuridae. Cada color representa un genero distinto"}
+ggplot(data4,aes(Longevidad, Gestacion, colour=Genero)) + geom_point()+ theme(panel.background = element_rect(fill = "transparent"),axis.line = element_line(colour="black")) + labs(x = "Longevidad (m)", y= "Gestacion (d)") 
+```
+
+Igualmente se comparo la longevidad entre distintas familias de roedores (Figura 3)
+
+```{r, fig.cap = "Figura 3: Distribucion de la longevidad entre distintas familias de roedores"}
+ggplot(data6,aes(Familia, Longevidad)) + geom_boxplot() + theme(panel.background = element_rect(fill = "transparent"),axis.line = element_line(colour="black")) + labs(x = "Familia", y= "Longevidad (m)")
+```
+
+
+```{r}
+Tabla1<- data4 %>% group_by(Genero) %>% summarize(Tamano=mean(Tamano),Gestacion=mean(Gestacion))
+
+kable(Tabla1, caption="Promedio por Genero de las variables Tamano y Gestacion", row.names = FALSE)
+```
+
+
